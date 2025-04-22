@@ -14,6 +14,7 @@ app.set("view engine", "ejs");
 
 app.use(express.json());
 
+
 const countrySchema = new mongoose.Schema({
   country: { type: String },
   flagURL: { type: String },
@@ -26,31 +27,47 @@ const Country = mongoose.model("Country", countrySchema, "Countries");
 
 // Create a POST route for "/add/country" that adds a country using the request body (3 points)
 // Use postman to add at least THREE different countries
-app.post('/add/country', (req, res) => {
-  const newCountry = new Country({
-      name: req.body.name,
-      population: req.body.population
-  });
+app.post("/add/country", async (req,res)=>{
+  const addCountry = await new Country({
+  country: req.params.country,
+  flagURL: req.params.flagURL,
+  population: req.params.population,
+  officialLanguage: req.params.officialLanguage,
+  hasNuclearWeapons: req.params.hasNuclearWeapons,
+}).save()
+res.json(addCountry)
+})
 
 // Create a GET route for "/" that renders countries.ejs with every country from the Countries collection (1 point)
-
+app.get("/", async (req,res)=>{
+  const data = await Country.find({})
+  res.render("countries.ejs", {data})
+})
 
 // Go to countries.ejs and follow the tasks there (2 points)
 
 
 // Create a dynamic PATCH route handler for "/update/{name}" that modifies the population of the country specified in the path (3 points)
 // Test this route on post man
-
+app.patch("/update/:name", async (req,res)=>{
+  const updatedCountry = await Country.findOneAndUpdate(
+    {country: req.params.name},
+    {population: req.body.population},
+    {new:true}).save()
+    res.json(updatedCountry)
+})
 
 
 // Create a DELETE route handler for "/delete/country" that deletes a country of your choice (3 points)
 // Test this route on post man
-
+app.delete("/delete/country/:name", async (req,res)=> {
+  const countryDelte = await Country.findOneAndDelete({name: req.params.id})
+})
 
 async function startServer() {
   
     // add your SRV string with a database called countries
-  await mongoose.connect("...");
+  await mongoose.connect("mongodb+srv://SE12:CSH2025@cluster0.pstd9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
 
   app.listen(3000, () => {
     console.log("Server is running");
